@@ -2,8 +2,10 @@ package com.genymobile.scrcpy;
 
 import android.annotation.TargetApi;
 import android.content.AttributionSource;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.content.IContentProvider;
 import android.os.Process;
 
 public final class FakeContext extends ContextWrapper {
@@ -16,6 +18,38 @@ public final class FakeContext extends ContextWrapper {
     public static FakeContext get() {
         return INSTANCE;
     }
+
+    private final ContentResolver contentResolver = new ContentResolver(this) {
+        @SuppressWarnings({"unused", "ProtectedMemberInFinalClass"})
+        // @Override (but super-class method not visible)
+        protected IContentProvider acquireProvider(Context c, String name) {
+            return null;
+        }
+
+        @SuppressWarnings("unused")
+        // @Override (but super-class method not visible)
+        public boolean releaseProvider(IContentProvider icp) {
+            return false;
+        }
+
+        @SuppressWarnings({"unused", "ProtectedMemberInFinalClass"})
+        // @Override (but super-class method not visible)
+        protected IContentProvider acquireUnstableProvider(Context c, String name) {
+            return null;
+        }
+
+        @SuppressWarnings("unused")
+        // @Override (but super-class method not visible)
+        public boolean releaseUnstableProvider(IContentProvider icp) {
+            return false;
+        }
+
+        @SuppressWarnings("unused")
+        // @Override (but super-class method not visible)
+        public void unstableProviderDied(IContentProvider icp) {
+            // ignore
+        }
+    };
 
     private FakeContext() {
         super(Workarounds.getSystemContext());
@@ -48,5 +82,10 @@ public final class FakeContext extends ContextWrapper {
     @Override
     public Context getApplicationContext() {
         return this;
+    }
+
+    @Override
+    public ContentResolver getContentResolver() {
+        return contentResolver;
     }
 }
